@@ -1,0 +1,192 @@
+ORDER ENTITY 
+
+@Entity
+@Table(name = "orders")
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long orderId;
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;  // Foreign key to the Customer table
+
+    private LocalDate orderDate;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ViewOrder> viewOrders;  // List of products in the order
+
+    // Getters and Setters
+}
+
+-------------------------------
+
+VIEW ORDER ENTITY
+
+@Entity
+@Table(name = "view_orders")
+public class ViewOrder {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long viewOrderId;
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;  // Foreign key to the Order table
+
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;  // Foreign key to the Product table
+
+    private int quantity;
+    private double tax;
+    private double unitPrice;
+    private double mrp;
+    private double price;
+
+    // Getters and Setters
+}
+-------------------------------------
+
+ORDERCONTROLLER
+
+@RestController
+@RequestMapping("/order")
+public class OrderController {
+    
+    @Autowired
+    private OrderService orderService;
+
+    @PostMapping("/placeOrder")
+    public ResponseEntity<Order> placeOrder(@RequestBody OrderDto orderDto) {
+        return ResponseEntity.ok(orderService.placeOrder(orderDto));
+    }
+
+    @GetMapping("/viewOrder/{orderId}")
+    public ResponseEntity<Order> viewOrder(@PathVariable Long orderId) {
+        return ResponseEntity.ok(orderService.viewOrder(orderId));
+    }
+
+    @DeleteMapping("/deleteOrder/{orderId}")
+    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId) {
+        orderService.deleteOrder(orderId);
+        return ResponseEntity.ok("Order deleted successfully");
+    }
+}
+------------------------------------------
+
+VIEWORDER CONTROLLER
+
+@RestController
+@RequestMapping("/viewOrder")
+public class ViewOrderController {
+    
+    @Autowired
+    private ViewOrderService viewOrderService;
+
+    @GetMapping("/getProducts/{orderId}")
+    public ResponseEntity<List<ViewOrder>> getProducts(@PathVariable Long orderId) {
+        return ResponseEntity.ok(viewOrderService.getProductsByOrderId(orderId));
+    }
+}
+---------------------------------------
+
+ORDERDTO
+
+import java.time.LocalDate;
+import java.util.List;
+
+public class OrderDto {
+
+    private Long customerId;  // Customer ID to link the order
+    private LocalDate orderDate;  // Date when the order is placed
+    private List<ViewOrderDto> viewOrderDtos;  // List of products in the order
+
+    // Getters and Setters
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
+
+    public LocalDate getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(LocalDate orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public List<ViewOrderDto> getViewOrderDtos() {
+        return viewOrderDtos;
+    }
+
+    public void setViewOrderDtos(List<ViewOrderDto> viewOrderDtos) {
+        this.viewOrderDtos = viewOrderDtos;
+    }
+}
+-------------------------------------
+
+VIEWORDER DTO
+
+public class ViewOrderDto {
+
+    private Long productId;  // Product ID
+    private int quantity;  // Quantity of the product
+    private double tax;  // Tax applied to the product
+    private double unitPrice;  // Unit price of the product
+    private double mrp;  // MRP of the product
+    private double price;  // Total price for the product
+
+    // Getters and Setters
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public double getTax() {
+        return tax;
+    }
+
+    public void setTax(double tax) {
+        this.tax = tax;
+    }
+
+    public double getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(double unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public double getMrp() {
+        return mrp;
+    }
+
+    public void setMrp(double mrp) {
+        this.mrp = mrp;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+}
+-----------------------------------
